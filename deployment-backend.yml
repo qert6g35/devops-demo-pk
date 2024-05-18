@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-deployment
+  namespace: student-259257
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+      - name: backend
+        image: piotrkulczycki/backend:latest
+        ports:
+        - containerPort: 5000
+        env:
+        - name: MONGODB_RW_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: MONGODB_RW_HOST
+        - name: MONGODB_RO_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: MONGODB_RO_HOST
+        - name: MONGO_INITDB_ROOT_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: app-secret
+              key: MONGO_INITDB_ROOT_USERNAME
+        - name: MONGO_INITDB_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: app-secret
+              key: MONGO_INITDB_ROOT_PASSWORD
+        livenessProbe:
+          httpGet:
+            path: /up
+            port: 5000
+          initialDelaySeconds: 15
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /up
+            port: 5000
+          initialDelaySeconds: 15
+          periodSeconds: 10
